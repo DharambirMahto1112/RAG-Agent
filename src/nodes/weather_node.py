@@ -124,7 +124,10 @@ class WeatherNode:
             if "error" in weather_data:
                 response = f"❌ {weather_data['error']}"
             else:
-                response = self.weather_service.format_weather_response(weather_data)
+                if query_type == 'forecast':
+                    response = self.weather_service.format_forecast_response(weather_data)
+                else:
+                    response = self.weather_service.format_weather_response(weather_data)
             
             # Update state
             state["weather_data"] = weather_data

@@ -18,7 +18,7 @@ class DecisionNode:
         
         # Document-related keywords
         self.document_keywords = [
-            'document', 'pdf', 'file', 'text', 'content', 'information',
+            'document', 'pdf', 'file', 'content', 'information',
             'what does', 'what is', 'define', 'definition', 'explain', 'describe',
             'tell me about', 'summarize', 'summary', 'overview', 'find', 'purpose',
             'objective', 'objectives', 'core tasks', 'according to', 'in the document',
@@ -69,10 +69,9 @@ class DecisionNode:
             print("DEBUG - Routing to DOCUMENT")
             return "document"
         else:
-            # If not clearly weather, prefer document for general knowledge queries
-            # This helps route questions like "what is ..." to RAG when docs exist
-            print("DEBUG - Routing to DOCUMENT (default)")
-            return "document"
+            # No clear signal: classify as unknown
+            print("DEBUG - Routing to UNKNOWN (no clear classification)")
+            return "unknown"
     
     def process(self, state: Dict[str, Any]) -> Dict[str, Any]:
         """

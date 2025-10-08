@@ -8,7 +8,7 @@ from pathlib import Path
 def main():
     """Run all tests with pytest."""
     try:
-        print("🧪 Running RAG Agent Tests...")
+        print("Running RAG Agent Tests...")
         print("=" * 50)
         
         # Add src to Python path
@@ -24,14 +24,14 @@ def main():
         ], cwd=str(Path(__file__).parent))
         
         if result.returncode == 0:
-            print("\n✅ All tests passed!")
+            print("\nAll tests passed!")
         else:
-            print("\n❌ Some tests failed!")
+            print("\nSome tests failed!")
             
         return result.returncode
         
     except Exception as e:
-        print(f"❌ Error running tests: {e}")
+        print(f"Error running tests: {e}")
         return 1
 
 if __name__ == "__main__":

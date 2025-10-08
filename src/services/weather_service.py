@@ -86,7 +86,7 @@ class WeatherService:
                 "location": city,
                 "timestamp": datetime.now().isoformat()
             }
-        except requests.exceptions.RequestException as e:
+        except Exception as e:
             return {
                 "error": f"Failed to fetch weather data: {str(e)}",
                 "location": city,
@@ -206,17 +206,62 @@ class WeatherService:
         
         response = f"""
 
-🌤️ **Weather Report for {location['city']}, {location['country']}**
+Weather Report for {location['city']}, {location['country']}
 
-🌡️ **Temperature**: {current['temperature']}°C (feels like {current['feels_like']}°C)
-☁️ **Condition**: {current['description'].title()}
-💧 **Humidity**: {current['humidity']}%
-🌬️ **Wind**: {current['wind_speed']} m/s
-👁️ **Visibility**: {current['visibility']}m
-☁️ **Cloudiness**: {current['cloudiness']}%
+Temperature: {current['temperature']}°C (feels like {current['feels_like']}°C)
+Condition: {current['description']}
+Humidity: {current['humidity']}%
+Wind: {current['wind_speed']} m/s
+Visibility: {current['visibility']}m
+Cloudiness: {current['cloudiness']}%
 
-📍 **Coordinates**: {location['coordinates']['lat']:.2f}°N, {location['coordinates']['lon']:.2f}°E
-🕐 **Last Updated**: {weather_data['timestamp']}
+Coordinates: {location['coordinates']['lat']:.2f}°N, {location['coordinates']['lon']:.2f}°E
+Last Updated: {weather_data['timestamp']}
         """.strip()
         
         return response
+
+    def format_forecast_response(self, forecast_data: Dict[str, Any]) -> str:
+        """
+        Format forecast data into a human-readable string.
+        
+        Args:
+            forecast_data: Forecast data dictionary as returned by get_weather_forecast
+            
+        Returns:
+            Formatted forecast information string
+        """
+        if "error" in forecast_data:
+            return f"❌ Error: {forecast_data['error']}"
+
+        try:
+            location = forecast_data["location"]
+            items = forecast_data.get("forecast", [])
+
+            # Show up to the next 8 time slots (~24 hours)
+            preview_items = items[:8] if items else []
+
+            lines = []
+            for item in preview_items:
+                line = (
+                    f"{item['datetime']}: "
+                    f"{item['temperature']['current']}°C "
+                    f"(min {item['temperature']['min']}°C, max {item['temperature']['max']}°C), "
+                    f"{item['description']}"
+                )
+                lines.append(line)
+
+            body = "\n".join(lines) if lines else "No forecast data available."
+
+            response = f"""
+
+📅 Forecast for {location['city']}, {location['country']}
+
+{body}
+
+🕐 Last Updated: {forecast_data['timestamp']}
+            """.strip()
+
+            return response
+        except KeyError as e:
+            return f"❌ Error: Unexpected forecast data format: {str(e)}"
