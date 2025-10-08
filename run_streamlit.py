@@ -28,30 +28,40 @@ def main():
         # Path to the Streamlit app
         app_path = Path(__file__).parent / "src" / "ui" / "streamlit_app.py"
         
-        # Resolve port/address from env with safe defaults
-        env_port = os.environ.get("PORT") or os.environ.get("STREAMLIT_SERVER_PORT") or "8501"
-        try:
-            preferred_port = int(env_port)
-        except ValueError:
-            preferred_port = 8501
-        port = _find_free_port(preferred_port)
-
-        address = os.environ.get("STREAMLIT_SERVER_ADDRESS", "0.0.0.0")
+        # If platform provides PORT (managed environments), don't override.
+        managed_port = os.environ.get("PORT")
         headless = os.environ.get("STREAMLIT_HEADLESS", "true").lower() in {"1", "true", "yes"}
+        address = os.environ.get("STREAMLIT_SERVER_ADDRESS", "0.0.0.0")
 
         print("Starting RAG Agent Streamlit UI...")
         print(f"App path: {app_path}")
-        print(f"Binding to {address}:{port} (headless={headless})")
 
-        # Build streamlit command
-        cmd = [
-            sys.executable, "-m", "streamlit", "run",
-            str(app_path),
-            "--server.port", str(port),
-            "--server.address", address,
-            "--server.headless", "true" if headless else "false",
-            "--browser.gatherUsageStats", "false"
-        ]
+        if managed_port:
+            # Let the platform control the port; avoid conflicts by not passing --server.port
+            print(f"Detected managed environment PORT={managed_port}. Delegating port selection to platform.")
+            cmd = [
+                sys.executable, "-m", "streamlit", "run",
+                str(app_path),
+                "--server.headless", "true" if headless else "false",
+                "--browser.gatherUsageStats", "false"
+            ]
+        else:
+            # Local/VM: pick a free port
+            env_port = os.environ.get("STREAMLIT_SERVER_PORT") or "8501"
+            try:
+                preferred_port = int(env_port)
+            except ValueError:
+                preferred_port = 8501
+            port = _find_free_port(preferred_port)
+            print(f"Binding to {address}:{port} (headless={headless})")
+            cmd = [
+                sys.executable, "-m", "streamlit", "run",
+                str(app_path),
+                "--server.port", str(port),
+                "--server.address", address,
+                "--server.headless", "true" if headless else "false",
+                "--browser.gatherUsageStats", "false"
+            ]
 
         # Run Streamlit
         subprocess.run(cmd)
